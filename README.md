@@ -18,4 +18,4 @@ In ubuntu:
 
 ### In additon
 
-To be honest, I have not test it on windows. In case you get error on windows, you may need to fix on your own.
+To be honest, I have not test it on windows. In case you get error on windows, you can try to fix on your own.
