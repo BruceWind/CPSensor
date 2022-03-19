@@ -22,14 +22,25 @@ reportWebVitals();
 let canvasEl = document.getElementById('canvas');//64x64
 let canvas = canvasEl.getContext('2d');
 
-canvas.font = "12px serif";
 
-canvas.fillStyle = "#ff0000";
-canvas.fillText("20C", 0, 12);
 
 // Called when message received from main process
 window.api.receive("fromMain", (data) => {
   console.log(`Received ${data} from main process`);
 });
-// Send a message to the main process
-window.api.send("onGeneratedTrayIcon", canvasEl.toDataURL("image/png"));
+
+
+window.api.receive("toGenerateImg", (data) => {
+  console.log(`toGenerateImg ${data.text}`);
+
+  canvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  canvas.fillStyle = "black";
+  canvas.fillRect(0, 0, canvas.width, canvas.height);
+
+  canvas.fillStyle = data.color || 'white';
+  canvas.font = "12px serif";
+  canvas.fillText(data.text, 0, 12);
+  window.api.send("onGeneratedTrayIcon", canvasEl.toDataURL("image/png"));
+
+});
+
