@@ -4,10 +4,14 @@ const { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage, Rectangle, nativeT
 const isDev = require('electron-is-dev');
 const si = require('systeminformation');
 
-const { createTray, setTrayImage, setWindow, chooseHardware } = require("./CPSensorTray");
+const { createTray, setTrayImage, refreshMenu, setWindow, getChooseItem, setHardwareState } = require("./CPSensorTray");
+const { CPU, MEM, BATTERY, CPU_TEMP, SWAP } = require("./Sensor");
 
 let win = null;
 
+//--------------force showing something---------------
+let forceShowingTpt = false;
+let forceShowingBattery = false;
 
 
 function createWindow() {
@@ -75,49 +79,104 @@ app.on('activate', () => {
   }
 });
 
+//note: -------------it works on some conditions. ------
+function tellCanvas2Render(item, textV, textColor) {
+  // console.log('chooseHardware : ' + getChooseItem());
+  let innerChooseItem = getChooseItem() || CPU;
+  let innerColor = textColor || 'white';
+
+  if (forceShowingTpt || forceShowingBattery) {
+    if (item == CPU_TEMP || item == BATTERY) {
+      win.webContents.send("toGenerateImg", { text: textV, color: textColor });
+    }
+    return
+  }
+  else {
+    if (item == innerChooseItem) {
+      win.webContents.send("toGenerateImg", { text: textV, color: textColor });
+    }
+  }
+}
+
 setInterval(() => {
 
   si.currentLoad()
     .then(data => {
-      let usage = Math.round(data.currentLoad)
+      let usage = Math.round(data.currentLoad);
+
+
       let textV = '' + usage + '%';
       let textC = 'white'
       if (usage > 85) {
         textC = 'red'
       }
 
-      win.webContents.send("toGenerateImg", { text: textV, color: textC });
+      tellCanvas2Render(CPU, textV, textC);
+
+      setHardwareState(CPU, textV);
     })
     .catch(error => console.error(error));
 
-  // si.cpuTemperature()
-  //   .then(data => console.log(data.main))
-  //   .catch(error => console.error(error));
+  si.cpuTemperature()
+    .then(data => {
+      //console.log(data.main);
+      let cpuTpt = Math.round(data.main);
+      forceShowingTpt = cpuTpt > 85.0;
+      let textV = cpuTpt + '℃';
 
-  // si.mem()
-  //   .then(data => console.log(
-  //     'RAM: '
-  //   + (data.used*100/data.total).toFixed(2) 
-  //   + '  SWAP: ' 
-  //   + (data.swapused*100/data.swaptotal).toFixed(2))
-  //   )
-  //   .catch(error => console.error(error));
+      setHardwareState(CPU_TEMP, textV);
+      tellCanvas2Render(CPU_TEMP, textV)
+    })
+    .catch(error => console.error(error));
+
+  si.mem()
+    .then(data => {
+
+      //   console.log(
+      //   'RAM: '
+      // + ramText
+      // + '  SWAP: ' 
+      // + swapText;
+
+      let usage = (data.used * 100 / data.total).toFixed(2);
+      let ramText = usage + '';
+      setHardwareState(MEM, ramText);
+
+
+      tellCanvas2Render(MEM, ramText)
+
+      usage = (data.swapused * 100 / data.swaptotal).toFixed(2);
+      let swapText = usage + '';
+      setHardwareState(SWAP, swapText);
+      let textC = usage > 85 ? 'red' : 'white'
+      tellCanvas2Render(SWAP, ramText, textC)
+    }
+    )
+    .catch(error => console.error(error));
 
 
 
   si.battery()
     .then(data => {
-      if (data.percent < 1) {
-        return;
-      }
+      // if (data.percent < 1) {
+      //   return;
+      // }
+      let value = data.percent;
+      let valueWithUnit = value + '%';
 
-      if (data.acConnected) {
-        console.log('(in)' + data.percent);
+      let textV = (data.acConnected ? '(⚡)' : '') + ((value && value > 0) ? valueWithUnit : 'none');
+
+      forceShowingBattery = value > 0 && value <= 20 && false == data.acConnected;
+
+      setHardwareState(BATTERY, textV);
+      if (value > 0 && value <= 20) {
+        tellCanvas2Render(BATTERY, textV, 'red')
       }
       else {
-        console.log('(in)' + data.percent);
+        tellCanvas2Render(BATTERY, textV)
       }
+
     })
     .catch(error => console.error(error));
-
+  refreshMenu();
 }, 2000);

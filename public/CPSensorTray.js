@@ -1,4 +1,5 @@
-const { Menu, Tray, nativeTheme, nativeImage } = require('electron');
+const {app, Menu, Tray, nativeTheme, nativeImage } = require('electron');
+const { CPU, MEM, BATTERY, CPU_TEMP, SWAP } = require("./Sensor");
 
 
 let tray = null;
@@ -7,19 +8,33 @@ var createWindow = null;
 
 
 const DEFAULT_LABEL = 'none'
+const SPLIT = ': '
 
 const handleMenItemClick = (menuItem, browserWindow, event) => {
-  if (menuItem.innerType == undefined) return
-  chooseHardware = menuItem.innerType
+  if (menuItem.innerType == undefined) return;
+  chooseHardware = menuItem.innerType;
+
+  menus.map((item) => {
+    if (menuItem.checked) {
+      menuItem.checked = false;
+    }
+  });
+  menuItem.checked = true;
+  console.log(menuItem.innerType + " choose.");
 }
 const menus = [{
-  label: 'CPU:' + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: 'cpu', checked: false, visible: true
+  label: 'CPU' + SPLIT + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: CPU, checked: true, visible: true
+}, {
+  label: 'CPU_TEMP' + SPLIT + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: CPU_TEMP, checked: false, visible: true
 },
 {
-  label: 'Mem:' + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: 'mem', checked: true, visible: true
+  label: 'Mem' + SPLIT + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: MEM, checked: false, visible: true
 },
 {
-  label: 'Battery:' + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: 'battery', checked: false, visible: true
+  label: 'Swap' + SPLIT + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: SWAP, checked: false, visible: true
+},
+{
+  label: 'Battery' + SPLIT + DEFAULT_LABEL, type: 'radio', click: handleMenItemClick, innerType: BATTERY, checked: false, visible: true
 },
 {
   label: 'Show App', click: function () {
@@ -38,6 +53,7 @@ const menus = [{
 }
 ];
 
+///-------------------------------chooseHardware-----------------------------------------------
 const setMenus = () => {
   if (tray) {
     var newArray = menus.filter(function (el) {
@@ -52,10 +68,13 @@ const setMenus = () => {
   }
 }
 
+exports.refreshMenu = setMenus;
+
 ///-------------------------------chooseHardware-----------------------------------------------
 //choose a hardware for render in tray. it expose to index.js
 let chooseHardware = null;
-exports.chooseHardware = chooseHardware;
+const getChooseItem = () => { return chooseHardware; }
+exports.getChooseItem = getChooseItem;
 
 ///-------------------------------createTray-----------------------------------------------
 const createTray = (image) => {
@@ -107,3 +126,18 @@ const setItemVisible = (hardware, visible) => {
   setMenus();
 }
 exports.setItemVisible = setItemVisible;
+
+
+
+///--------------------------------------setItemVisible--------------------------------------------------
+const setHardwareState = (hardware, state) => {
+  menus.map((item) => {
+    if (item.innerType == hardware) {
+      let prevLabel = item.label;
+      // console.warn('prevLabel: ' + prevLabel);
+      let strs = prevLabel.split(':');
+      item.label = strs[0] + SPLIT + state;
+    }
+  });
+}
+exports.setHardwareState = setHardwareState;
