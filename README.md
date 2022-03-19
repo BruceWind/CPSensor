@@ -1,5 +1,5 @@
 # CPSensor
-A cross-platform sensor app basing on [Electron](https://www.electronjs.org/) & [React](https://github.com/facebook/react/), which just settle on a system tray show you battery, CPU, memory and others.
+A **C**ross-**P**latform **sensor** app, basing on [Electron](https://www.electronjs.org/) & [React](https://github.com/facebook/react/), which just settle in system tray show you battery, CPU, memory and others.
 
 
 ### Features
@@ -18,4 +18,4 @@ In ubuntu:
 
 ### In additon
 
-To be honest, I have not test it on windows. In case you get error on windows, you can try to fix on your own.
+To be honest, I didn't take tests on windows too much. In case you get error on windows, you can try to fix on your own.
