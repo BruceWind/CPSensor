@@ -1,5 +1,5 @@
 # CPSensor
-A cross-platform sensor app, which just settle on a system tray show you battery, CPU, memory and others.
+A cross-platform sensor app basing on [Electron](https://www.electronjs.org/) & [React](https://github.com/facebook/react/), which just settle on a system tray show you battery, CPU, memory and others.
 
 
 
