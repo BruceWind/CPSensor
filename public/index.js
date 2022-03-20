@@ -7,6 +7,15 @@ const si = require('systeminformation');
 const { createTray, setTrayImage, refreshMenu, setWindow, getChooseItem, setHardwareState } = require("./CPSensorTray");
 const { CPU, MEM, BATTERY, CPU_TEMP, SWAP } = require("./Sensor");
 
+
+function getDefaultTxtColor(){
+  if(nativeTheme.shouldUseDarkColors){
+    return 'white';
+  }
+  else{
+    return 'black';
+  }
+}
 let win = null;
 
 //--------------force showing something---------------
@@ -83,17 +92,17 @@ app.on('activate', () => {
 function tellCanvas2Render(item, textV, textColor) {
   // console.log('chooseHardware : ' + getChooseItem());
   let innerChooseItem = getChooseItem() || CPU;
-  let innerColor = textColor || 'white';
+  let innerColor = textColor || getDefaultTxtColor();
 
   if (forceShowingTpt || forceShowingBattery) {
     if (item == CPU_TEMP || item == BATTERY) {
-      win.webContents.send("toGenerateImg", { text: textV, color: textColor });
+      win.webContents.send("toGenerateImg", { text: textV, color: innerColor });
     }
     return
   }
   else {
     if (item == innerChooseItem) {
-      win.webContents.send("toGenerateImg", { text: textV, color: textColor });
+      win.webContents.send("toGenerateImg", { text: textV, color: innerColor });
     }
   }
 }
@@ -106,7 +115,7 @@ setInterval(() => {
 
 
       let textV = '' + usage + '%';
-      let textC = 'white'
+      let textC = getDefaultTxtColor();
       if (usage > 85) {
         textC = 'red'
       }
@@ -129,30 +138,30 @@ setInterval(() => {
     })
     .catch(error => console.error(error));
 
-  si.mem()
-    .then(data => {
+  // si.mem()
+  //   .then(data => {
 
-      //   console.log(
-      //   'RAM: '
-      // + ramText
-      // + '  SWAP: ' 
-      // + swapText;
+  //     //   console.log(
+  //     //   'RAM: '
+  //     // + ramText
+  //     // + '  SWAP: ' 
+  //     // + swapText;
 
-      let usage = (data.used * 100 / data.total).toFixed(2);
-      let ramText = usage + '';
-      setHardwareState(MEM, ramText);
+  //     let usage = (data.used * 100 / data.total).toFixed(2);
+  //     let ramText = usage + '';
+  //     setHardwareState(MEM, ramText);
 
 
-      tellCanvas2Render(MEM, ramText)
+  //     tellCanvas2Render(MEM, ramText)
 
-      usage = (data.swapused * 100 / data.swaptotal).toFixed(2);
-      let swapText = usage + '';
-      setHardwareState(SWAP, swapText);
-      let textC = usage > 85 ? 'red' : 'white'
-      tellCanvas2Render(SWAP, ramText, textC)
-    }
-    )
-    .catch(error => console.error(error));
+  //     usage = (data.swapused * 100 / data.swaptotal).toFixed(2);
+  //     let swapText = usage + '';
+  //     setHardwareState(SWAP, swapText);
+  //     let textC = usage > 85 ? 'red' : getDefaultTxtColor()
+  //     tellCanvas2Render(SWAP, ramText, textC)
+  //   }
+  //   )
+  //   .catch(error => console.error(error));
 
 
 
@@ -164,7 +173,7 @@ setInterval(() => {
       let value = data.percent;
       let valueWithUnit = value + '%';
 
-      let textV = (data.acConnected ? '(⚡)' : '') + ((value && value > 0) ? valueWithUnit : 'none');
+      let textV = (data.acConnected ? '⚡' : '') + ((value && value > 0) ? valueWithUnit : 'none');
 
       forceShowingBattery = value > 0 && value <= 20 && false == data.acConnected;
 
@@ -178,5 +187,6 @@ setInterval(() => {
 
     })
     .catch(error => console.error(error));
+
   refreshMenu();
 }, 2000);
