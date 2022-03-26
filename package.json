@@ -16,6 +16,7 @@
     "lint": "xo",
     "test": "npm run lint",
     "start": "electron .",
+    "clean": "rm -r node_modules/",
     "electron": "wait-on tcp:3000 && electron .",
     "start-backup": "react-scripts start",
     "dev": "concurrently -k \"BROWSER=none npm start\" \"npm:electron\"",
@@ -75,9 +76,15 @@
     "extraMetadata": {
       "main": "dist/main/main.js"
     },
+    "directories": {
+      "buildResources": "src"
+    },
     "files": [
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "src",
+      "public",
+      "assets"
     ],
     "mac": {
       "category": "public.app-category.social-networking",
